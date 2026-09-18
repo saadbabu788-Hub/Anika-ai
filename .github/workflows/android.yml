@@ -28,7 +28,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Restore Debug Keystore
+      - name: Restore Keystores
         run: |
           if [ -f debug.keystore.base64 ]; then
             echo "Restoring debug.keystore from debug.keystore.base64..."
@@ -37,6 +37,14 @@ jobs:
             echo "Generating default Android debug keystore..."
             keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
           fi
+
+          if [ ! -f my-upload-key.jks ]; then
+            echo "Generating release upload keystore..."
+            keytool -genkey -v -keystore my-upload-key.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000 -storepass "${STORE_PASSWORD:-android}" -keypass "${KEY_PASSWORD:-android}" -dname "CN=Anika AI,O=Anika,C=US"
+          fi
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD || 'android' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'android' }}
 
       - name: Configure Environment (.env)
         run: |
@@ -52,23 +60,34 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Build Release and Debug APKs
+        run: ./gradlew assembleRelease assembleDebug --stacktrace
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD || 'android' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'android' }}
+
+      - name: Prepare Release Artifacts
+        run: |
+          mkdir -p release
+          if [ -f app/build/outputs/apk/release/app-release.apk ]; then
+            cp app/build/outputs/apk/release/app-release.apk release/Anika-AI.apk
+            cp app/build/outputs/apk/release/app-release.apk release/app-release.apk
+          fi
 
       - name: Locate Generated APK
         id: apk_locator
         run: |
-          APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" -type f | head -n 1)
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -n 1)
           if [ -z "$APK_PATH" ]; then
-            APK_PATH=$(find app/build/outputs/apk -name "*.apk" -type f | head -n 1)
+            APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" -type f | head -n 1)
           fi
           echo "Found APK at: $APK_PATH"
           echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
 
-      - name: Upload Debug APK Artifact
+      - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Android-APK
+          name: Anika-AI-Release-APK
           path: ${{ steps.apk_locator.outputs.apk_path }}
           retention-days: 30
 

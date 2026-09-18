@@ -12,6 +12,8 @@ local.properties
 .cxx
 .env
 *.apk
+!release/*.apk
+!release/**/*.apk
 *.aab
 debug.keystore
 my-upload-key.jks
