@@ -1,0 +1,6 @@
+{
+  "name": "Anika AI",
+  "description": "Anika AI Assistant — Smart personal assistant with voice, actions, personality modes, and AI chat.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

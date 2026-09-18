@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Outer energy resonance rings (within 66dp safe zone: x,y from 21 to 87) -->
+    <path
+        android:pathData="M34,42 C30,49 30,59 34,66 M74,42 C78,49 78,59 74,66"
+        android:strokeWidth="2.5"
+        android:strokeColor="#8006B6D4"
+        android:strokeLineCap="round" />
+
+    <path
+        android:pathData="M27,37 C22,48 22,60 27,71 M81,37 C86,48 86,60 81,71"
+        android:strokeWidth="2"
+        android:strokeColor="#50A855F7"
+        android:strokeLineCap="round" />
+
+    <!-- Core Orb Glow Outer Circle -->
+    <path android:pathData="M54,30 A24,24 0 1,1 53.99,30">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="30"
+                android:startY="30"
+                android:endX="78"
+                android:endY="78"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FF8B5CF6" />
+                <item android:offset="0.5" android:color="#FF3B82F6" />
+                <item android:offset="1.0" android:color="#FF06B6D4" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Inner Core Sphere Glow -->
+    <path android:pathData="M54,36 A18,18 0 1,1 53.99,36">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="40"
+                android:startY="38"
+                android:endX="68"
+                android:endY="70"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FFFFFFFF" />
+                <item android:offset="0.4" android:color="#FFE0E7FF" />
+                <item android:offset="1.0" android:color="#FF6366F1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Center AI Sparkle / Voice Core Symbol -->
+    <path
+        android:fillColor="#0B091A"
+        android:pathData="M54,44 C54,49 50,54 44,54 C50,54 54,59 54,64 C54,59 58,54 64,54 C58,54 54,49 54,44 Z" />
+
+    <!-- Small satellite spark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M65,39 C65,41 63,43 61,43 C63,43 65,45 65,47 C65,45 67,43 69,43 C67,43 65,41 65,39 Z" />
+</vector>
