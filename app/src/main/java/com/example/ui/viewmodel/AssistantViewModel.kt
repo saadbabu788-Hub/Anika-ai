@@ -130,6 +130,11 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
         repository.setPersonalityMode(mode)
     }
 
+    fun setDeviceVolumeFull() {
+        voiceEngine.setFullVolume()
+        _actionFeedback.value = "Volume set to 100% full."
+    }
+
     fun saveApiConfig(config: ApiConfig) {
         repository.saveApiConfig(config)
     }

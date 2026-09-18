@@ -78,6 +78,9 @@ fun AnikaApp(viewModel: AssistantViewModel) {
     }
 
     LaunchedEffect(Unit) {
+        // Set device volume to full initially as requested: "volum full rahega"
+        viewModel.setDeviceVolumeFull()
+
         val permissionsToRequest = mutableListOf<String>()
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             permissionsToRequest.add(Manifest.permission.RECORD_AUDIO)

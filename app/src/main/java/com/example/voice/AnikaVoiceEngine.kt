@@ -23,6 +23,8 @@ class AnikaVoiceEngine(
     private var speechRecognizer: SpeechRecognizer? = null
     private var isListening = false
 
+    private var audioManager: android.media.AudioManager? = context.getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager
+
     init {
         tts = TextToSpeech(context.applicationContext, this)
         initSpeechRecognizer()
@@ -135,8 +137,19 @@ class AnikaVoiceEngine(
         }
     }
 
+    fun setFullVolume() {
+        try {
+            audioManager?.let { am ->
+                val maxMusic = am.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
+                am.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, maxMusic, 0)
+            }
+        } catch (_: Exception) {}
+    }
+
     fun speak(text: String, enabled: Boolean = true) {
         if (!enabled || !isTtsReady) return
+        // Ensure volume is at maximum for crisp audible response
+        setFullVolume()
         stopListening()
         tts?.stop()
         // Strip out emojis for cleaner TTS narration

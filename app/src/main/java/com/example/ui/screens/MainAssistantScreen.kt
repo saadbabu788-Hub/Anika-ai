@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,11 +21,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -67,15 +70,16 @@ fun MainAssistantScreen(
     val transcript by viewModel.currentTranscript.collectAsState()
     val latestResponse by viewModel.latestResponse.collectAsState()
     val actionFeedback by viewModel.actionFeedback.collectAsState()
+    val apiConfig by viewModel.apiConfig.collectAsState()
 
     val quickCommands = listOf(
         "Who created you?",
+        "Volume full",
         "Turn flashlight on",
         "Open YouTube",
         "Open WhatsApp",
-        "Increase volume",
-        "Open Settings",
-        "Tumhara naam kya hai?"
+        "Tumhara naam kya hai?",
+        "Open Settings"
     )
 
     Column(
@@ -149,7 +153,19 @@ fun MainAssistantScreen(
                 }
             }
 
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Quick Full Volume Toggle / Booster Button
+                IconButton(
+                    onClick = { viewModel.setDeviceVolumeFull() },
+                    modifier = Modifier.testTag("volume_full_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.VolumeUp,
+                        contentDescription = "Set Volume Full",
+                        tint = Color(0xFF38BDF8)
+                    )
+                }
+
                 IconButton(
                     onClick = onShowAbout,
                     modifier = Modifier.testTag("about_creator_button")
@@ -160,14 +176,25 @@ fun MainAssistantScreen(
                         tint = Color(0xFFC7D2FE)
                     )
                 }
-                IconButton(
-                    onClick = onNavigateToSettings,
-                    modifier = Modifier.testTag("settings_button")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "API Settings",
-                        tint = Color(0xFFC7D2FE)
+
+                // API Key Settings with green/orange status indicator dot
+                Box(contentAlignment = Alignment.TopEnd) {
+                    IconButton(
+                        onClick = onNavigateToSettings,
+                        modifier = Modifier.testTag("settings_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Key,
+                            contentDescription = "API Settings",
+                            tint = if (apiConfig.isConfigured) Color(0xFF34D399) else Color(0xFFFBBF24)
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 8.dp, end = 8.dp)
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(if (apiConfig.isConfigured) Color(0xFF10B981) else Color(0xFFF59E0B))
                     )
                 }
             }
@@ -207,49 +234,82 @@ fun MainAssistantScreen(
                 else -> "READY & LISTENING"
             }
 
-            Text(
-                text = stateText,
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 1.5.sp,
-                    color = when {
-                        !isActive -> Color.Gray
-                        orbState == OrbState.LISTENING -> Color(0xFF38BDF8)
-                        orbState == OrbState.SPEAKING -> Color(0xFFC084FC)
-                        orbState == OrbState.ERROR -> Color(0xFFF87171)
-                        else -> Color(0xFF94A3B8)
+            // State Indicator Pill Badge
+            Surface(
+                color = when {
+                    !isActive -> Color(0xFF1F2937).copy(alpha = 0.6f)
+                    orbState == OrbState.LISTENING -> Color(0xFF0284C7).copy(alpha = 0.25f)
+                    orbState == OrbState.SPEAKING -> Color(0xFF9333EA).copy(alpha = 0.25f)
+                    orbState == OrbState.PROCESSING -> Color(0xFF059669).copy(alpha = 0.25f)
+                    orbState == OrbState.ERROR -> Color(0xFFDC2626).copy(alpha = 0.25f)
+                    else -> Color(0xFF312E81).copy(alpha = 0.35f)
+                },
+                shape = RoundedCornerShape(20.dp),
+                border = BorderStroke(
+                    1.dp,
+                    when {
+                        !isActive -> Color(0xFF4B5563)
+                        orbState == OrbState.LISTENING -> Color(0xFF00F0FF)
+                        orbState == OrbState.SPEAKING -> Color(0xFFD946EF)
+                        orbState == OrbState.PROCESSING -> Color(0xFF34D399)
+                        orbState == OrbState.ERROR -> Color(0xFFEF4444)
+                        else -> Color(0xFF6366F1)
                     }
                 )
-            )
+            ) {
+                Text(
+                    text = stateText,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp,
+                        color = when {
+                            !isActive -> Color.Gray
+                            orbState == OrbState.LISTENING -> Color(0xFF00F0FF)
+                            orbState == OrbState.SPEAKING -> Color(0xFFF0ABFC)
+                            orbState == OrbState.PROCESSING -> Color(0xFF6EE7B7)
+                            orbState == OrbState.ERROR -> Color(0xFFFCA5A5)
+                            else -> Color(0xFFA5B4FC)
+                        }
+                    )
+                )
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
             // Latest Spoken Content / Action Result Card
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF1B163B).copy(alpha = 0.65f)
+                    containerColor = Color(0xFF161233).copy(alpha = 0.85f)
                 ),
+                border = BorderStroke(1.dp, Color(0xFF3B2D75).copy(alpha = 0.7f)),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
-                    .fillMaxWidth(0.92f)
+                    .fillMaxWidth(0.94f)
                     .padding(horizontal = 4.dp)
             ) {
-                Text(
-                    text = when {
-                        !actionFeedback.isNullOrBlank() -> actionFeedback!!
-                        transcript.isNotBlank() && orbState == OrbState.LISTENING -> "“$transcript”"
-                        latestResponse.isNotBlank() -> latestResponse
-                        else -> "Tap the microphone below to talk to Anika"
-                    },
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = Color(0xFFE2E8F0),
-                        textAlign = TextAlign.Center
-                    ),
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(14.dp),
-                    maxLines = 3
-                )
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = when {
+                            !actionFeedback.isNullOrBlank() -> actionFeedback!!
+                            transcript.isNotBlank() && orbState == OrbState.LISTENING -> "“$transcript”"
+                            latestResponse.isNotBlank() -> latestResponse
+                            else -> "Tap the microphone below to talk to Anika"
+                        },
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = Color(0xFFF1F5F9),
+                            textAlign = TextAlign.Center,
+                            lineHeight = 20.sp
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 4
+                    )
+                }
             }
         }
 
@@ -324,17 +384,17 @@ fun MainAssistantScreen(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(82.dp)
-                        .shadow(elevation = 14.dp, shape = CircleShape)
+                        .size(86.dp)
+                        .shadow(elevation = 16.dp, shape = CircleShape, spotColor = Color(0xFF00F0FF))
                         .clip(CircleShape)
                         .background(
                             if (orbState == OrbState.LISTENING) {
                                 Brush.linearGradient(
-                                    listOf(Color(0xFF06B6D4), Color(0xFF3B82F6), Color(0xFF8B5CF6))
+                                    listOf(Color(0xFF00F0FF), Color(0xFF3B82F6), Color(0xFF8B5CF6))
                                 )
                             } else {
                                 Brush.linearGradient(
-                                    listOf(Color(0xFF6366F1), Color(0xFF8B5CF6))
+                                    listOf(Color(0xFF4F46E5), Color(0xFF7C3AED), Color(0xFF06B6D4))
                                 )
                             }
                         )

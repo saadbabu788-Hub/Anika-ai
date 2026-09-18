@@ -32,6 +32,9 @@ class DeviceActionExecutor(private val context: Context) {
         }
 
         // 2. Device Audio: Volume control
+        if (lower.contains("volume full") || lower.contains("full volume") || lower.contains("maximum volume") || lower.contains("awaaz full") || lower.contains("awaaz poori karo")) {
+            return setMaxVolume()
+        }
         if (lower.contains("increase volume") || lower.contains("volume up") || lower.contains("awaaz badhao")) {
             return adjustVolume(AudioManager.ADJUST_RAISE)
         }
@@ -170,6 +173,23 @@ class DeviceActionExecutor(private val context: Context) {
             ActionResult(false, "Flashlight requires camera permission.", permissionNeeded = "android.permission.CAMERA")
         } catch (e: Exception) {
             ActionResult(false, "Flashlight error: ${e.message}")
+        }
+    }
+
+    private fun setMaxVolume(): ActionResult {
+        return try {
+            val am = audioManager ?: return ActionResult(false, "Audio service unavailable.")
+            val maxMusicVol = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+            am.setStreamVolume(AudioManager.STREAM_MUSIC, maxMusicVol, AudioManager.FLAG_SHOW_UI)
+            val maxRingVol = am.getStreamMaxVolume(AudioManager.STREAM_RING)
+            am.setStreamVolume(AudioManager.STREAM_RING, maxRingVol, 0)
+            ActionResult(
+                success = true,
+                message = "Volume full kar diya gaya hai (100% max).",
+                intentHandled = true
+            )
+        } catch (e: Exception) {
+            ActionResult(false, "Volume full karne mein dikkat: ${e.message}")
         }
     }
 
